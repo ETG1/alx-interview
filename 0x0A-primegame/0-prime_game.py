@@ -1,46 +1,41 @@
 #!/usr/bin/python3
+"""0. Prime Game - Maria and Ben are playing a game"""
 
 
-def sieve_of_eratosthenes(max_n):
-    """ Generate a list indicating prime numbers up to max_n. """
-    primes = [True] * (max_n + 1)
-    primes[0] = primes[1] = False  # 0 and 1 are not primes
-    for i in range(2, int(max_n ** 0.5) + 1):
-        if primes[i]:
-            for j in range(i * i, max_n + 1, i):
-                primes[j] = False
-    return primes
+def isWinner(rounds: int, numbers: list) -> str:
+    """Determines the winner of the prime game.
 
+    Args:
+    rounds (int): The number of rounds.
+    numbers (list): A list of numbers.
 
-def count_primes_up_to_n(n, primes):
-    """ Count the number of primes up to and including n. """
-    return sum(primes[2:n + 1])
-
-
-def isWinner(x, nums):
-    """ Determine who wins the most rounds between Maria and Ben. """
-    if x <= 0 or not nums:
+    Returns:
+    str: The winner of the game, either "Ben" or "Maria"
+    or None if the input is invalid.
+    """
+    if rounds <= 0 or numbers is None or rounds != len(numbers):
         return None
 
-    max_n = max(nums)
-    primes = sieve_of_eratosthenes(max_n)
+    ben_score = 0
+    maria_score = 0
 
-    maria_wins = 0
-    ben_wins = 0
+    prime_flags = [True] * (max(numbers) + 1)
+    prime_flags[0] = prime_flags[1] = False
 
-    for n in nums:
-        prime_count = count_primes_up_to_n(n, primes)
+    for num in range(2, int(max(numbers) ** 0.5) + 1):
+        if prime_flags[num]:
+            for multiple in range(num * num, max(numbers) + 1, num):
+                prime_flags[multiple] = False
 
-        # Maria starts first, so if the number of primes is odd,
-        # Maria wins, otherwise Ben wins.
-        if prime_count % 2 == 1:
-            maria_wins += 1
+    for num in numbers:
+        if sum(prime_flags[:num + 1]) % 2 == 0:
+            ben_score += 1
         else:
-            ben_wins += 1
+            maria_score += 1
 
-    if maria_wins > ben_wins:
-        return "Maria"
-    elif ben_wins > maria_wins:
+    if ben_score > maria_score:
         return "Ben"
+    elif maria_score > ben_score:
+        return "Maria"
     else:
         return None
