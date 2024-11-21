@@ -1,27 +1,34 @@
 #!/usr/bin/python3
+""" UTF-8 Encoding Validation """
+
+
 def validUTF8(data):
-    num_bytes = 0
 
-    for num in data:
-        # Get the binary representation of the number, without the '0b' prefix, and zero-padded to 8 bits
-        bin_rep = format(num, '#010b')[-8:]
+   #  Method that determines if a given data set represents a valid UTF-8 encoding.
 
-        if num_bytes == 0:
-            # Determine how many bytes are in this UTF-8 character
-            if bin_rep[0] == '0':
-                continue  # 1-byte character
-            elif bin_rep[:3] == '110':
-                num_bytes = 1  # 2-byte character
-            elif bin_rep[:4] == '1110':
-                num_bytes = 2  # 3-byte character
-            elif bin_rep[:5] == '11110':
-                num_bytes = 3  # 4-byte character
-            else:
-                return False  # Invalid UTF-8 header
-        else:
-            # If we are expecting more bytes, they must be of the form 10xxxxxx
-            if bin_rep[:2] != '10':
+    number_bytes = 0
+
+    mask_1 = 1 << 7
+    mask_2 = 1 << 6
+
+    for i in data:
+
+        mask_byte = 1 << 7
+
+        if number_bytes == 0:
+            while mask_byte & i:
+                number_bytes += 1
+                mask_byte = mask_byte >> 1
+
+            if number_bytes == 0:
+                continue
+            if number_bytes == 1 or number_bytes > 4:
                 return False
-            num_bytes -= 1
 
-    return num_bytes == 0
+        else:
+            if not (i & mask_1 and not (i & mask_2)):
+                return False
+
+        number_bytes -= 1
+
+    return number_bytes == 0
