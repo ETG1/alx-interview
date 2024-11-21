@@ -1,32 +1,17 @@
 #!/usr/bin/node
 
 const request = require('request');
-const movieId = process.argv[2];
-const apiUrl = `https://swapi-api.alx-tools.com/api/films/${movieId}`;
 
-// Make a request to the Star Wars API for the movie details
-request(apiUrl, (error, response, body) => {
-  if (error) {
-    console.error('Error:', error);
-    return;
-  }
-
-  // Parse the response body to JSON
-  const filmData = JSON.parse(body);
-
-  // Get the list of character URLs
-  const characterUrls = filmData.characters;
-
-  // For each character URL, make a request to get character details
-  characterUrls.forEach((url) => {
-    request(url, (err, res, charBody) => {
-      if (err) {
-        console.error('Error:', err);
-        return;
-      }
-      const characterData = JSON.parse(charBody);
-      console.log(characterData.name);
-    });
-  });
+request('https://swapi-api.hbtn.io/api/films/' + process.argv[2], function (err, res, body) {
+  if (err) throw err;
+  const actors = JSON.parse(body).characters;
+  exactOrder(actors, 0);
 });
-
+const exactOrder = (actors, x) => {
+  if (x === actors.length) return;
+  request(actors[x], function (err, res, body) {
+    if (err) throw err;
+    console.log(JSON.parse(body).name);
+    exactOrder(actors, x + 1);
+  });
+};
