@@ -5,7 +5,7 @@ A make change function
 
 
 def makeChange(coins, total):
-    
+
     # Minium coins required
 
     if total <= 0:
