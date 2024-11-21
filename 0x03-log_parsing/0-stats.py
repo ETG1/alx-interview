@@ -1,54 +1,52 @@
 #!/usr/bin/python3
+"""Script that reads each line of input from stdin and computes various metrics
+"""
 
 import sys
-import re
-import signal
 
-# Define regex pattern to match log lines
-LOG_PATTERN = re.compile(
-    r'^(?P<ip>\S+) - \[(?P<date>[^\]]+)\] "(?P<method>[A-Z]+) (?P<url>\S+) HTTP/\d\.\d" (?P<status>\d{3}) (?P<size>\d+)$'
-)
 
-# Initialize dictionaries and counters
-status_counts = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
-total_file_size = 0
-line_count = 0
-
-def print_statistics():
-    global status_counts, total_file_size
-    print(f"File size: {total_file_size}")
-    for status_code in sorted(status_counts):
-        if status_counts[status_code] > 0:
-            print(f"{status_code}: {status_counts[status_code]}")
-
-def signal_handler(signum, frame):
-    print_statistics()
-    sys.exit(0)
-
-def main():
-    global total_file_size, line_count
-
-    # Set up signal handling for keyboard interruption
-    signal.signal(signal.SIGINT, signal_handler)
+def process_logs():
+    cache = {
+        '200': 0,
+        '301': 0,
+        '400': 0,
+        '401': 0,
+        '403': 0,
+        '404': 0,
+        '405': 0,
+        '500': 0
+    }
+    total_size = 0
+    counter = 0
 
     try:
         for line in sys.stdin:
-            line_count += 1
-            match = LOG_PATTERN.match(line)
-            if match:
-                status_code = int(match.group('status'))
-                file_size = int(match.group('size'))
-                if status_code in status_counts:
-                    status_counts[status_code] += 1
-                    total_file_size += file_size
+            line_list = line.split(" ")
+            if len(line_list) > 4:
+                code = line_list[-2]
+                size = int(line_list[-1])
+                if code in cache.keys():
+                    cache[code] += 1
+                total_size += size
+                counter += 1
 
-            if line_count % 10 == 0:
-                print_statistics()
+            if counter == 10:
+                counter = 0
+                print_stats(total_size, cache)
 
-    except KeyboardInterrupt:
-        print_statistics()
-        sys.exit(0)
+    except Exception as err:
+        pass
+
+    finally:
+        print_stats(total_size, cache)
+
+
+def print_stats(file_size_total, status_code_counts):
+    print('File size: {}'.format(file_size_total))
+    for key, value in sorted(status_code_counts.items()):
+        if value != 0:
+            print('{}: {}'.format(key, value))
+
 
 if __name__ == "__main__":
-    main()
-
+    process_logs()
